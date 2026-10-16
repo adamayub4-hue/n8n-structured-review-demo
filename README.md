@@ -30,7 +30,11 @@ The workflow uses no paid API, model, artifact upload, Actions cache, larger run
 
 ## Validation status
 
-The first real hosted execution has not yet completed. Consult the manual workflow run and its verifier result before describing this sample as tested.
+A [real hosted execution](https://github.com/adamayub4-hue/n8n-structured-review-demo/actions/runs/38833133929) passed on 16 October 2026: all four native n8n nodes completed successfully, **17 acceptance checks across five cases passed**, and the independent verifier checked the actual execution data. [Saved result](verified-result.json). The baseline produced three pending proposals, one duplicate and four exceptions; the three timestamp edge records were also rejected.
+
+The [earlier run](https://github.com/adamayub4-hue/n8n-structured-review-demo/actions/runs/38832601948) failed to capture evidence because the CLI logging level suppressed its JSON output. Changing only that level to `info` resolved it; the workflow and verifier assertions were unchanged. The failure remains visible.
+
+To reproduce on the hosted runner: open **Actions → Verify real n8n execution → Run workflow**, select `main`, and read the job summary. The expected final status is `verified_native_execution`; a failed run does not establish success.
 
 ## Moving toward a real integration
 

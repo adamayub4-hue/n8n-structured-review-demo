@@ -1,0 +1,29 @@
+{
+  "observed_at_utc": "2026-10-16T01:07:02.673Z",
+  "nature": "Original synthetic n8n capability demonstration; not client deployment, paid assignment or income",
+  "source_commit": "2534d0bcf08897886df399d2d659708e5919d3f7",
+  "run_url": "https://github.com/adamayub4-hue/n8n-structured-review-demo/actions/runs/38833133929",
+  "official_image": "docker.n8n.io/n8nio/n8n@sha256:dd580fe1ab6e99e85bc66f2acf8bc8c5e9409fbe61b2e2803c5024403ef52833",
+  "status": "verified_native_execution",
+  "n8n_version": "2.43.6",
+  "workflow_id": "NotesReviewDemo1",
+  "nodes_executed": [
+    "Manual Trigger",
+    "Synthetic structured exports",
+    "Prepare review queue",
+    "Acceptance checks"
+  ],
+  "native_acceptance_checks_passed": 17,
+  "fixture_cases": 5,
+  "baseline": {
+    "pending_human_review": 3,
+    "identical_duplicates": 1,
+    "rejected": 4
+  },
+  "timestamp_edge_cases_rejected": 3,
+  "all_proposals_pending_human_review": true,
+  "external_writes_or_sends": 0,
+  "persistent_idempotency_or_human_approval": false,
+  "native_finished": true,
+  "native_status": "success"
+}
