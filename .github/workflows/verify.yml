@@ -1,0 +1,75 @@
+name: Verify real n8n execution
+
+on: workflow_dispatch
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    if: github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Pull and identify official n8n image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker pull docker.n8n.io/n8nio/n8n:2.43.6
+          image=$(docker image inspect docker.n8n.io/n8nio/n8n:2.43.6 --format '{{index .RepoDigests 0}}')
+          test -n "$image"
+          echo "N8N_IMAGE=$image" >> "$GITHUB_ENV"
+          echo "Official image: $image"
+      - name: Import and execute in disposable isolated container
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/n8n-demo-home" "$RUNNER_TEMP/n8n-demo-evidence"
+          chmod 0777 "$RUNNER_TEMP/n8n-demo-home" "$RUNNER_TEMP/n8n-demo-evidence"
+          docker run --rm --network none --cpus 2 --memory 4g --pids-limit 256 \
+            -e N8N_LOG_LEVEL=warn \
+            -e N8N_DIAGNOSTICS_ENABLED=false \
+            -e N8N_VERSION_NOTIFICATIONS_ENABLED=false \
+            -e N8N_TEMPLATES_ENABLED=false \
+            -e N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true \
+            -e N8N_BLOCK_ENV_ACCESS_IN_NODE=true \
+            -e N8N_RUNNERS_ENABLED=true \
+            -e N8N_RUNNERS_MODE=internal \
+            -e N8N_RUNNERS_MAX_CONCURRENCY=1 \
+            -e N8N_RUNNERS_TASK_TIMEOUT=30 \
+            -v "$GITHUB_WORKSPACE/workflow.json:/fixture/workflow.json:ro" \
+            -v "$RUNNER_TEMP/n8n-demo-home:/home/node/.n8n" \
+            -v "$RUNNER_TEMP/n8n-demo-evidence:/evidence" \
+            --entrypoint /bin/sh "$N8N_IMAGE" -c '
+              set -eu
+              n8n --version > /evidence/version.txt
+              n8n import:workflow --input=/fixture/workflow.json > /evidence/import.log 2>&1
+              n8n execute --id=NotesReviewDemo1 --rawOutput > /evidence/execute.log 2>&1
+              n8n export:workflow --id=NotesReviewDemo1 --output=/evidence/exported-workflow.json > /evidence/export.log 2>&1
+            '
+      - name: Independently verify actual execution data
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 verify_result.py "$RUNNER_TEMP/n8n-demo-evidence" workflow.json | tee verification.json
+          {
+            echo '## Actual n8n execution verification'
+            echo "Official image: \`$N8N_IMAGE\`"
+            echo '```json'
+            cat verification.json
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Show finite diagnostic evidence
+        if: always()
+        shell: bash
+        run: |
+          for name in version.txt import.log execute.log export.log; do
+            path="$RUNNER_TEMP/n8n-demo-evidence/$name"
+            if test -f "$path"; then
+              echo "### $name"
+              tail -n 100 "$path"
+            fi
+          done
