@@ -30,7 +30,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/n8n-demo-home" "$RUNNER_TEMP/n8n-demo-evidence"
           chmod 0777 "$RUNNER_TEMP/n8n-demo-home" "$RUNNER_TEMP/n8n-demo-evidence"
           docker run --rm --network none --cpus 2 --memory 4g --pids-limit 256 \
-            -e N8N_LOG_LEVEL=warn \
+            -e N8N_LOG_LEVEL=info \
             -e N8N_DIAGNOSTICS_ENABLED=false \
             -e N8N_VERSION_NOTIFICATIONS_ENABLED=false \
             -e N8N_TEMPLATES_ENABLED=false \
